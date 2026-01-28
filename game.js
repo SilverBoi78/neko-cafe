@@ -70,13 +70,35 @@ function calculateCoinsPerSecond() {
 
 function spawnCat(upgrade) {
     const cafeRoom = document.getElementById('cafeRoom');
-    const maxX = 540;
-    const maxY = 540;
     
-    const x = Math.random() * maxX;
-    const y = Math.random() * maxY;
+    const positions = [
+        {x: 80, y: 320},
+        {x: 200, y: 250},
+        {x: 350, y: 350},
+        {x: 480, y: 280},
+        {x: 150, y: 450},
+        {x: 400, y: 480},
+        {x: 250, y: 180},
+        {x: 520, y: 420}
+    ];
     
-    const cat = createCatElement(upgrade.sprite, x, y);
+    const availablePositions = positions.filter(pos => {
+        return !gameState.spawnedCats.some(cat => {
+            const catX = parseInt(cat.style.left);
+            const catY = parseInt(cat.style.top);
+            return Math.abs(catX - pos.x) < 60 && Math.abs(catY - pos.y) < 60;
+        });
+    });
+    
+    if (availablePositions.length === 0) {
+        const x = 100 + Math.random() * 440;
+        const y = 150 + Math.random() * 440;
+        availablePositions.push({x, y});
+    }
+    
+    const position = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+    
+    const cat = createCatElement(upgrade.sprite, position.x, position.y);
     cafeRoom.appendChild(cat);
     gameState.spawnedCats.push(cat);
     
@@ -87,16 +109,24 @@ function spawnCat(upgrade) {
 
 function spawnFood() {
     const cafeRoom = document.getElementById('cafeRoom');
-    const maxX = 580;
-    const maxY = 580;
     
-    const x = Math.random() * maxX;
-    const y = Math.random() * maxY;
+    const tablePositions = [
+        {x: 100, y: 220},
+        {x: 260, y: 220},
+        {x: 420, y: 220},
+        {x: 580, y: 220},
+        {x: 100, y: 520},
+        {x: 260, y: 520},
+        {x: 420, y: 520},
+        {x: 580, y: 520}
+    ];
+    
+    const position = tablePositions[Math.floor(Math.random() * tablePositions.length)];
     
     const randomRow = Math.floor(Math.random() * 3);
     const randomCol = Math.floor(Math.random() * 3);
     
-    const food = createFoodElement(randomRow, randomCol, x, y);
+    const food = createFoodElement(randomRow, randomCol, position.x, position.y, 2.5);
     cafeRoom.appendChild(food);
     
     setTimeout(() => {
@@ -144,7 +174,11 @@ function renderShop() {
     gameState.upgrades.forEach(upgrade => {
         const canAfford = gameState.coins >= upgrade.cost;
         const itemDiv = document.createElement('div');
-        itemDiv.className = `shop-item ${!canAfford ? 'disabled' : ''}`;
+        itemDiv.className = 'shop-item';
+        
+        if (!canAfford) {
+            itemDiv.classList.add('disabled');
+        }
         
         itemDiv.innerHTML = `
             <div class="shop-item-header">
@@ -156,9 +190,11 @@ function renderShop() {
             <div class="shop-item-owned">Owned: ${upgrade.owned}</div>
         `;
         
-        if (canAfford) {
-            itemDiv.addEventListener('click', () => buyUpgrade(upgrade.id));
-        }
+        itemDiv.addEventListener('click', () => {
+            if (gameState.coins >= upgrade.cost) {
+                buyUpgrade(upgrade.id);
+            }
+        });
         
         shopContainer.appendChild(itemDiv);
     });
