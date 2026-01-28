@@ -12,7 +12,9 @@ const gameState = {
             cps: 0.5,
             owned: 0,
             description: 'A helpful black cat serves customers',
-            sprite: 'assets/images/cat-black-front.png'
+            sprite: 'assets/images/cat-black-front.png',
+            spriteRow: 0,
+            spriteCol: 0
         },
         {
             id: 'orange-cat',
@@ -22,7 +24,9 @@ const gameState = {
             cps: 2,
             owned: 0,
             description: 'An energetic orange cat makes drinks',
-            sprite: 'assets/images/cat-orange-front.png'
+            sprite: 'assets/images/cat-orange-front.png',
+            spriteRow: 0,
+            spriteCol: 0
         },
         {
             id: 'cat-chef',
@@ -32,7 +36,9 @@ const gameState = {
             cps: 8,
             owned: 0,
             description: 'A skilled cat prepares pastries',
-            sprite: 'assets/images/cat-waiter-front.png'
+            sprite: 'assets/images/cat-waiter-front.png',
+            spriteRow: 0,
+            spriteCol: 0
         },
         {
             id: 'furniture',
@@ -68,6 +74,31 @@ function calculateCoinsPerSecond() {
     gameState.coinsPerSecond = total;
 }
 
+function extractSpriteFrame(imagePath, frameWidth, frameHeight, row, col, callback) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = frameWidth;
+        canvas.height = frameHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+            img,
+            col * frameWidth,
+            row * frameHeight,
+            frameWidth,
+            frameHeight,
+            0,
+            0,
+            frameWidth,
+            frameHeight
+        );
+        callback(canvas.toDataURL());
+    };
+    img.src = imagePath;
+}
+
 function spawnCat(upgrade) {
     const cafeRoom = document.getElementById('cafeRoom');
     
@@ -98,13 +129,21 @@ function spawnCat(upgrade) {
     
     const position = availablePositions[Math.floor(Math.random() * availablePositions.length)];
     
-    const cat = createCatElement(upgrade.sprite, position.x, position.y);
-    cafeRoom.appendChild(cat);
-    gameState.spawnedCats.push(cat);
-    
-    setTimeout(() => {
-        cat.style.opacity = '1';
-    }, 50);
+    extractSpriteFrame(upgrade.sprite, 16, 16, 0, 0, function(frameDataUrl) {
+        const cat = document.createElement('img');
+        cat.src = frameDataUrl;
+        cat.className = 'cafe-cat';
+        cat.style.left = position.x + 'px';
+        cat.style.top = position.y + 'px';
+        cat.style.width = '48px';
+        cat.style.height = '48px';
+        cafeRoom.appendChild(cat);
+        gameState.spawnedCats.push(cat);
+        
+        setTimeout(() => {
+            cat.style.opacity = '1';
+        }, 50);
+    });
 }
 
 function spawnFood() {
@@ -137,6 +176,7 @@ function spawnFood() {
 function handleClick() {
     gameState.coins += gameState.clickPower;
     updateDisplay();
+    updateShopStates();
     
     const clickButton = document.getElementById('clickButton');
     clickButton.style.background = 'rgba(255,255,255,0.2)';
@@ -165,6 +205,20 @@ function buyUpgrade(upgradeId) {
         updateDisplay();
         renderShop();
     }
+}
+
+function updateShopStates() {
+    const shopItems = document.querySelectorAll('.shop-item');
+    shopItems.forEach((item, index) => {
+        const upgrade = gameState.upgrades[index];
+        const canAfford = gameState.coins >= upgrade.cost;
+        
+        if (canAfford) {
+            item.classList.remove('disabled');
+        } else {
+            item.classList.add('disabled');
+        }
+    });
 }
 
 function renderShop() {
@@ -203,6 +257,7 @@ function renderShop() {
 function gameLoop() {
     gameState.coins += gameState.coinsPerSecond / 10;
     updateDisplay();
+    updateShopStates();
 }
 
 function init() {
