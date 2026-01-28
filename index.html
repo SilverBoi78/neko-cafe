@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neko Cafe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <div class="header-content">
+                <h1>🐾 Neko Cafe</h1>
+                <div class="stats">
+                    <div class="stat-box">
+                        <span class="coin-icon">🪙</span>
+                        <span id="coins">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="label">per sec:</span>
+                        <span id="coinsPerSec">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="cafe-scene">
+                <div class="cafe-room" id="cafeRoom">
+                    <div id="clickButton" class="click-overlay">
+                        <div class="click-prompt">Click to serve customers! ☕</div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="shop-panel">
+                <h2>🏪 Hire & Upgrade</h2>
+                <div id="shopItems" class="shop-items"></div>
+            </aside>
+        </main>
+    </div>
+
+    <script src="sprites.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
